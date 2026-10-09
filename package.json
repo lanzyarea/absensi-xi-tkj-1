@@ -1,0 +1,17 @@
+{
+  "name": "absensi-xi-tkj-1",
+  "version": "1.0.0",
+  "description": "Aplikasi Absensi Fullstack Kelas XI TKJ 1 (Express + SQLite + Tailwind)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}
