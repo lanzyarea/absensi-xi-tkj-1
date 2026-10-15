@@ -196,8 +196,9 @@ async function initDb() {
         names.forEach((name, i) => stmt.run(String(2501 + i), name, kelasList[i % kelasList.length]));
         await new Promise((resolve, reject) => stmt.finalize((err) => err ? reject(err) : resolve()));
 
-        // Sebar siswa ke ekskul: semua ikut 1 ekskul, tiap siswa ke-3 ikut +1 ekskul
-        const ekskulRows = await all('SELECT id FROM ekskul ORDER BY id');
+        // Sebar siswa ke ekskul (Volly dikecualikan — khusus roster murid asli)
+        const ekskulRows = (await all('SELECT id, name FROM ekskul ORDER BY id'))
+            .filter(e => e.name !== 'Volly');
         const memberStmt = db.prepare('INSERT OR IGNORE INTO ekskul_members (ekskul_id, student_id) VALUES (?, ?)');
         for (let i = 0; i < names.length; i++) {
             const studentId = String(2501 + i);
@@ -208,6 +209,58 @@ async function initDb() {
         }
         await new Promise((resolve, reject) => memberStmt.finalize((err) => err ? reject(err) : resolve()));
         console.log('35 siswa + keanggotaan ekskul berhasil di-seed.');
+    }
+
+    // --- Seed anggota ekskul Volly (roster murid asli, per kelas) ---
+    const volly = await get("SELECT id FROM ekskul WHERE name = 'Volly'");
+    if (volly) {
+        const { c: vollyMemberCount } = await get(
+            'SELECT COUNT(*) AS c FROM ekskul_members WHERE ekskul_id = ?', [volly.id]
+        );
+        if (vollyMemberCount === 0) {
+            const roster = [
+                ['X TKJ 1', ['Ahmad Sholahuddin Miqraj', 'Hafizh Faeyza', 'Haikal Bima Fajri']],
+                ['X TKJ 2', ['Rafa Anandhia Jayakarta', 'Yusuf Romadhon', 'Zidan Al Farisy']],
+                ['X TPTU 1', ['Daffa Iqbal Firmansyah', 'Mohamad Pandu']],
+                ['X TPTU 2', ['Ridho Chaerul Fajri', 'Zulfan Arya Alfalah']],
+                ['X TKR 1', ['Adi Firmansyah', 'Adira', 'Ahmad Rabsi Syaifulloh', 'Alfino Syahputra Wijaya', 'Andi Raffa Al Khan', 'Bimo Raditya Firmansyah']],
+                ['X TKR 2', ['Hafizh Ridwan Santoso']],
+                ['X TKR 3', ['Mahmud Afriyanto', 'Mohamad Deriansyah', 'Muhammad Yusuf Uzaman', 'Nabil Mubarok Harahap', 'Nabil Sakha Kurniawan']],
+                ['X TKR 4', ['Rasya Dwi Kusuma', 'Richard Erick']],
+                ['XI TKJ 1', ['Ahmad Ziyad Mustafid', 'Azka Reihandrian', 'Dimas Pratama Putra', 'Fahtur Rohman Rajak', 'Haidar Ali', 'Muhamad Sahlan', 'Septiansyah Ramadhani']],
+                ['XI TKJ 2', ['Ibrahim Ilham Saputra', 'M. Badar Abiyyi']],
+                ['XI TKR 1', ['Sandy Alvian']],
+                ['XI TKR 2', ['M. Rizqi Syaputra', 'Rifqi Pratama', 'Umar Khadafi Ar-Rahman']],
+                ['XI TKR 3', ['Rahmat Fajar S.', 'Ridzki Aldiyansyah', 'Rizaldi Firdaus']]
+            ];
+
+            // Reuse siswa yang sudah terdaftar (nama+kelas sama), sisanya ID baru
+            const existing = await all('SELECT id, name, kelas FROM students');
+            const byKey = new Map(existing.map(s =>
+                [`${s.name.toLowerCase()}|${s.kelas.toLowerCase()}`, s.id]));
+            const maxRow = await get('SELECT MAX(CAST(id AS INTEGER)) AS maxId FROM students');
+            let nextId = (maxRow && maxRow.maxId ? maxRow.maxId : 2500) + 1;
+
+            const sStmt = db.prepare('INSERT INTO students (id, name, kelas) VALUES (?, ?, ?)');
+            const mStmt = db.prepare('INSERT OR IGNORE INTO ekskul_members (ekskul_id, student_id) VALUES (?, ?)');
+            let added = 0;
+            for (const [kelas, murid] of roster) {
+                for (const name of murid) {
+                    const key = `${name.toLowerCase()}|${kelas.toLowerCase()}`;
+                    let id = byKey.get(key);
+                    if (!id) {
+                        id = String(nextId++);
+                        sStmt.run(id, name, kelas);
+                        byKey.set(key, id);
+                    }
+                    mStmt.run(volly.id, id);
+                    added++;
+                }
+            }
+            await new Promise((resolve, reject) => sStmt.finalize((err) => err ? reject(err) : resolve()));
+            await new Promise((resolve, reject) => mStmt.finalize((err) => err ? reject(err) : resolve()));
+            console.log(`${added} anggota ekskul Volly berhasil di-seed.`);
+        }
     }
 }
 
@@ -340,7 +393,7 @@ app.get('/api/ekskul/:id/members', requireAuth, wrap(async (req, res) => {
         `SELECT s.id, s.name, s.kelas, m.joined_at
          FROM ekskul_members m JOIN students s ON s.id = m.student_id
          WHERE m.ekskul_id = ?
-         ORDER BY s.name COLLATE NOCASE`,
+         ORDER BY s.kelas COLLATE NOCASE, s.name COLLATE NOCASE`,
         [id]
     );
     res.json(rows);
@@ -382,7 +435,7 @@ app.get('/api/students', requireAuth, requireAdmin, wrap(async (req, res) => {
     const rows = await all(
         `SELECT s.*,
             (SELECT COUNT(*) FROM ekskul_members m WHERE m.student_id = s.id) AS ekskul_count
-         FROM students s ORDER BY s.name COLLATE NOCASE`
+         FROM students s ORDER BY s.kelas COLLATE NOCASE, s.name COLLATE NOCASE`
     );
     res.json(rows);
 }));
@@ -431,7 +484,7 @@ app.get('/api/attendance/:ekskulId/:date', requireAuth, wrap(async (req, res) =>
         `SELECT a.student_id, a.status, a.note, s.name
          FROM attendance a JOIN students s ON s.id = a.student_id
          WHERE a.ekskul_id = ? AND a.date = ?
-         ORDER BY s.name COLLATE NOCASE`,
+         ORDER BY s.kelas COLLATE NOCASE, s.name COLLATE NOCASE`,
         [ekskulId, date]
     );
     res.json(rows);
