@@ -146,7 +146,8 @@ async function initDb() {
             ['Pramuka', 'Jumat', '14:00'],
             ['PMR', 'Kamis', '15:00'],
             ['Paskibra', 'Rabu', '14:30'],
-            ['Seni Tari', 'Sabtu', '08:00']
+            ['Seni Tari', 'Sabtu', '08:00'],
+            ['Volly', 'Kamis', '15:30']
         ];
         const stmt = 'INSERT INTO ekskul (name, schedule_day, schedule_time) VALUES (?, ?, ?)';
         for (const e of ekskulList) await run(stmt, e);
