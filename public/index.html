@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi XI TKJ 1 - Login & App</title>
+    <title>Absensi Ekskul - Login & App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -14,30 +14,32 @@
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 space-y-6">
             <div class="text-center space-y-2">
                 <div class="bg-indigo-50 text-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
-                    <i class="fa-solid fa-lock"></i>
+                    <i class="fa-solid fa-people-group"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Login Absensi</h2>
-                <p class="text-xs text-slate-500">Kelas XI TKJ 1 - Silakan masuk untuk melanjutkan</p>
+                <h2 class="text-2xl font-bold text-slate-800">Login Absensi Ekskul</h2>
+                <p class="text-xs text-slate-500">Khusus Admin Sekolah &amp; Guru Pembina Ekskul</p>
             </div>
 
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Username</label>
-                    <input type="text" id="username" required placeholder="Contoh: admin / guru" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50">
+                    <input type="text" id="username" required autocomplete="username" placeholder="Contoh: admin / pakbudi" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Password</label>
-                    <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50">
+                    <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50">
                 </div>
                 <div id="loginError" class="text-xs text-rose-600 font-medium hidden"></div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                <button type="submit" id="loginBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-right-to-bracket"></i> Masuk
                 </button>
             </form>
+
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-500 space-y-1">
                 <p class="font-semibold text-slate-700">Akun Demo:</p>
                 <p>• Admin: <code class="bg-white px-1.5 py-0.5 rounded border">admin</code> / <code class="bg-white px-1.5 py-0.5 rounded border">admin123</code></p>
-                <p>• Guru: <code class="bg-white px-1.5 py-0.5 rounded border">guru</code> / <code class="bg-white px-1.5 py-0.5 rounded border">guru123</code></p>
+                <p>• Pembina Futsal: <code class="bg-white px-1.5 py-0.5 rounded border">pakbudi</code> / <code class="bg-white px-1.5 py-0.5 rounded border">budi123</code></p>
+                <p>• Pembina Pramuka: <code class="bg-white px-1.5 py-0.5 rounded border">burina</code> / <code class="bg-white px-1.5 py-0.5 rounded border">rina123</code></p>
             </div>
         </div>
     </div>
@@ -49,34 +51,54 @@
             <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <div class="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                        <i class="fa-solid fa-clipboard-user text-2xl"></i>
+                        <i class="fa-solid fa-people-group text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold">Absensi XI TKJ 1</h1>
+                        <h1 class="text-xl font-bold">Absensi Ekskul</h1>
                         <p class="text-xs text-indigo-200" id="userRoleDisplay">Login sebagai: -</p>
                     </div>
                 </div>
-                <button onclick="handleLogout()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 border border-indigo-500">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+                <div class="flex items-center gap-2">
+                    <span id="roleBadge" class="hidden bg-emerald-500/20 border border-emerald-300/40 text-emerald-100 text-xs font-medium px-3 py-1.5 rounded-lg"></span>
+                    <button onclick="handleLogout()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 border border-indigo-500">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
             </div>
+            <!-- Tabs (admin only) -->
+            <nav id="adminTabs" class="hidden max-w-7xl mx-auto px-4 flex gap-1 pb-1">
+                <button onclick="switchTab('absensi')" id="tab-absensi" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-white text-indigo-700">
+                    <i class="fa-solid fa-clipboard-check mr-1.5"></i> Absensi
+                </button>
+                <button onclick="switchTab('ekskul')" id="tab-ekskul" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-indigo-700/60 text-indigo-100 hover:bg-indigo-700">
+                    <i class="fa-solid fa-seedling mr-1.5"></i> Kelola Ekskul
+                </button>
+                <button onclick="switchTab('akun')" id="tab-akun" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-indigo-700/60 text-indigo-100 hover:bg-indigo-700">
+                    <i class="fa-solid fa-user-shield mr-1.5"></i> Kelola Akun
+                </button>
+            </nav>
         </header>
 
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- ================= PANEL ABSENSI ================= -->
+        <main id="panel-absensi" class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Sidebar -->
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
                     <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-day text-indigo-600"></i> Tanggal & Keterangan
+                        <i class="fa-solid fa-calendar-day text-indigo-600"></i> Pengaturan Absensi
                     </h2>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Ekskul</label>
+                        <select id="ekskulSelect" onchange="onEkskulChange()" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                        <p id="ekskulSchedule" class="text-xs text-slate-400 mt-1"></p>
+                    </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">Tanggal</label>
                         <input type="date" id="attendanceDate" onchange="loadAttendanceForDate()" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Catatan</label>
-                        <input type="text" id="attendanceNote" placeholder="Catatan pelajaran..." class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Catatan Kegiatan</label>
+                        <input type="text" id="attendanceNote" placeholder="Contoh: Latihan di lapangan..." class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <button onclick="markAll('Hadir')" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium py-2 rounded-lg text-sm transition border border-emerald-200">
                         <i class="fa-solid fa-check-double"></i> Set Semua Hadir
@@ -126,19 +148,21 @@
                 </button>
             </div>
 
-            <!-- Tabel Siswa -->
+            <!-- Tabel Anggota -->
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-4 border-b border-slate-100">
-                        <h2 class="font-bold text-slate-700">Daftar Siswa XI TKJ 1 (35 Murid)</h2>
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                        <h2 class="font-bold text-slate-700" id="memberTableTitle">Daftar Anggota</h2>
+                        <span class="text-xs text-slate-400" id="memberCount"></span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
                                     <th class="py-3 px-4 font-semibold w-16">No</th>
-                                    <th class="py-3 px-4 font-semibold">Nama Siswa</th>
-                                    <th class="py-3 px-4 font-semibold w-32">ID</th>
+                                    <th class="py-3 px-4 font-semibold">Nama Anggota</th>
+                                    <th class="py-3 px-4 font-semibold w-24">Kelas</th>
+                                    <th class="py-3 px-4 font-semibold w-32">NIS</th>
                                     <th class="py-3 px-4 font-semibold text-center w-72">Status</th>
                                 </tr>
                             </thead>
@@ -150,18 +174,181 @@
                 </div>
             </div>
         </main>
+
+        <!-- ================= PANEL KELOLA EKSKUL (admin) ================= -->
+        <section id="panel-ekskul" class="hidden max-w-7xl mx-auto px-4 py-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-indigo-600"></i> Tambah Ekskul
+                </h2>
+                <div class="grid grid-cols-3 gap-3 text-sm">
+                    <div class="col-span-3">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Nama Ekskul</label>
+                        <input id="newEkskulName" placeholder="Contoh: Basket" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Hari</label>
+                        <select id="newEkskulDay" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-</option>
+                            <option>Senin</option><option>Selasa</option><option>Rabu</option>
+                            <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Jam</label>
+                        <input id="newEkskulTime" placeholder="15:30" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="addEkskul()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg text-sm transition">
+                            Tambah
+                        </button>
+                    </div>
+                </div>
+                <div id="ekskulFormMsg" class="text-xs font-medium hidden"></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-list text-indigo-600"></i> Daftar Ekskul
+                </h2>
+                <div id="ekskulManageList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    <p class="text-xs text-slate-400">Memuat...</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4 lg:col-span-2">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-indigo-600"></i> Kelola Anggota Ekskul
+                </h2>
+                <div class="flex flex-wrap gap-3 items-end text-sm">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Pilih Ekskul</label>
+                        <select id="memberEkskulSelect" onchange="loadManageMembers()" class="px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">NIS</label>
+                        <select id="memberStudentSelect" class="px-3 py-2 border rounded-lg bg-slate-50 min-w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                    </div>
+                    <button onclick="addMember()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition">
+                        Tambah Anggota
+                    </button>
+                    <div id="memberFormMsg" class="text-xs font-medium"></div>
+                </div>
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="py-2.5 px-4 font-semibold w-16">No</th>
+                                <th class="py-2.5 px-4 font-semibold">Nama</th>
+                                <th class="py-2.5 px-4 font-semibold w-32">Kelas</th>
+                                <th class="py-2.5 px-4 font-semibold w-32">NIS</th>
+                                <th class="py-2.5 px-4 font-semibold w-24">Bergabung</th>
+                                <th class="py-2.5 px-4 font-semibold w-24"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="manageMembersBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PANEL KELOLA AKUN (admin) ================= -->
+        <section id="panel-akun" class="hidden max-w-7xl mx-auto px-4 py-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-indigo-600"></i> Buat Akun Baru
+                </h2>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Nama Lengkap</label>
+                        <input id="newUserName" placeholder="Pak Budi" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Username</label>
+                        <input id="newUserUsername" placeholder="pakbudi" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Password</label>
+                        <input id="newUserPassword" type="password" placeholder="min. 6 karakter" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Role</label>
+                        <select id="newUserRole" onchange="toggleUserEkskul()" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="pembina">Pembina Ekskul</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2" id="userEkskulField">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Ekskul yang Dibina</label>
+                        <select id="newUserEkskul" class="w-full px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                    </div>
+                </div>
+                <button onclick="addUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg text-sm transition">
+                    Buat Akun
+                </button>
+                <div id="userFormMsg" class="text-xs font-medium hidden"></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-indigo-600"></i> Daftar Akun
+                </h2>
+                <div id="userList" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    <p class="text-xs text-slate-400">Memuat...</p>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Script -->
     <script>
-        let students = [];
-        let attendanceState = {};
+        // -------------------------------------------------------------------
+        // State global
+        // -------------------------------------------------------------------
+        let token = sessionStorage.getItem('absensi_token') || null;
+        let currentUser = null;
+        let ekskulList = [];
+        let members = [];            // anggota ekskul terpilih
+        let students = [];           // semua siswa (admin only)
+        let attendanceState = {};    // { studentId: status }
 
+        const api = async (path, options = {}) => {
+            const res = await fetch(path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                    ...(options.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                // Sesi habis -> kembali ke login
+                resetToLogin();
+                throw new Error((await res.json().catch(() => ({}))).message || 'Sesi berakhir');
+            }
+            return res;
+        };
+
+        function resetToLogin() {
+            token = null;
+            currentUser = null;
+            sessionStorage.removeItem('absensi_token');
+            document.getElementById('appSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('password').value = '';
+        }
+
+        // -------------------------------------------------------------------
+        // Login / Logout
+        // -------------------------------------------------------------------
         async function handleLogin(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa...';
 
             try {
                 const res = await fetch('/api/login', {
@@ -171,74 +358,144 @@
                 });
                 const result = await res.json();
 
-                if (result.success) {
-                    document.getElementById('loginSection').classList.add('hidden');
-                    document.getElementById('appSection').classList.remove('hidden');
-                    document.getElementById('userRoleDisplay').innerText = `Login sebagai: ${result.user.username} (${result.user.role.toUpperCase()})`;
-                    
-                    // Inisialisasi Tanggal & Data Siswa
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('attendanceDate').value = today;
-                    await fetchStudents();
-                    await loadAttendanceForDate();
-                    await refreshHistory();
+                if (res.ok && result.success) {
+                    token = result.token;
+                    currentUser = result.user;
+                    sessionStorage.setItem('absensi_token', token);
+                    await enterApp();
                 } else {
-                    errorEl.innerText = result.message;
+                    errorEl.innerText = result.message || 'Login gagal';
                     errorEl.classList.remove('hidden');
                 }
             } catch (err) {
                 console.error(err);
-                errorEl.innerText = "Terjadi kesalahan koneksi server.";
+                errorEl.innerText = 'Terjadi kesalahan koneksi server.';
                 errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk';
             }
         }
 
-        function handleLogout() {
-            document.getElementById('appSection').classList.add('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('loginError').classList.add('hidden');
+        async function handleLogout() {
+            try { await api('/api/logout', { method: 'POST' }); } catch (e) { /* abaikan */ }
+            resetToLogin();
         }
 
-        async function fetchStudents() {
+        // Cek sesi tersimpan saat halaman dibuka
+        async function restoreSession() {
+            if (!token) return;
             try {
-                const res = await fetch('/api/students');
-                students = await res.json();
-                students.forEach(s => {
-                    attendanceState[s.id] = 'Hadir';
-                });
-                renderTable();
-                updateStats();
-            } catch (err) {
-                console.error("Gagal mengambil data siswa:", err);
+                const res = await api('/api/me');
+                const result = await res.json();
+                if (result.success) {
+                    currentUser = result.user;
+                    await enterApp();
+                }
+            } catch (e) { /* sudah di-reset ke login */ }
+        }
+
+        async function enterApp() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('userRoleDisplay').innerText =
+                `Login sebagai: ${currentUser.name} (${currentUser.role === 'admin' ? 'ADMIN' : 'PEMBINA'})`;
+
+            const badge = document.getElementById('roleBadge');
+            if (currentUser.role === 'admin') {
+                badge.textContent = 'AKSES PENUH';
+                badge.classList.remove('hidden');
+                document.getElementById('adminTabs').classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                document.getElementById('adminTabs').classList.add('hidden');
             }
+
+            // Inisialisasi tanggal & muat data
+            document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+            await loadEkskul();
+            if (currentUser.role === 'admin') {
+                students = await (await api('/api/students')).json();
+                await loadManageMembers();   // opsi anggota & ekskul
+                await refreshUserList();
+            }
+            await loadAttendanceForDate();
+            await refreshHistory();
+        }
+
+        // -------------------------------------------------------------------
+        // Ekskul selector
+        // -------------------------------------------------------------------
+        async function loadEkskul() {
+            ekskulList = await (await api('/api/ekskul')).json();
+
+            const options = ekskulList.map(e =>
+                `<option value="${e.id}">${e.name} (${e.member_count} anggota)</option>`).join('');
+
+            document.getElementById('ekskulSelect').innerHTML = options || '<option value="">Belum ada ekskul</option>';
+            document.getElementById('memberEkskulSelect').innerHTML = options;
+            document.getElementById('newUserEkskul').innerHTML =
+                ekskulList.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            updateScheduleHint();
+        }
+
+        function currentEkskulId() {
+            return Number(document.getElementById('ekskulSelect').value) || null;
+        }
+
+        function updateScheduleHint() {
+            const ek = ekskulList.find(e => e.id === currentEkskulId());
+            document.getElementById('ekskulSchedule').innerText =
+                ek && ek.schedule_day ? `Jadwal: ${ek.schedule_day} ${ek.schedule_time}`.trim() : '';
+            document.getElementById('memberTableTitle').innerText =
+                ek ? `Daftar Anggota — ${ek.name}` : 'Daftar Anggota';
+        }
+
+        async function onEkskulChange() {
+            updateScheduleHint();
+            await loadAttendanceForDate();
+            await refreshHistory();
+        }
+
+        // -------------------------------------------------------------------
+        // Tabel absensi
+        // -------------------------------------------------------------------
+        async function loadMembers() {
+            const ekId = currentEkskulId();
+            if (!ekId) { members = []; renderTable(); return; }
+            members = await (await api(`/api/ekskul/${ekId}/members`)).json();
+            members.forEach(m => { if (!attendanceState[m.id]) attendanceState[m.id] = 'Hadir'; });
+            document.getElementById('memberCount').innerText = `${members.length} anggota`;
+            renderTable();
         }
 
         function renderTable() {
             const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = '';
+            if (!members.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-6 px-4 text-center text-xs text-slate-400">Belum ada anggota di ekskul ini.</td></tr>';
+                return;
+            }
 
-            students.forEach((student, index) => {
-                const status = attendanceState[student.id];
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-slate-500">${index + 1}</td>
-                    <td class="py-3 px-4 font-semibold text-slate-800">${student.name}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500 font-mono">${student.id}</td>
-                    <td class="py-3 px-4">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button onclick="setStatus('${student.id}', 'Hadir')" class="px-2.5 py-1 text-xs font-medium rounded border transition ${status === 'Hadir' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-600 border-emerald-200'}">H</button>
-                            <button onclick="setStatus('${student.id}', 'Izin')" class="px-2.5 py-1 text-xs font-medium rounded border transition ${status === 'Izin' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-200'}">I</button>
-                            <button onclick="setStatus('${student.id}', 'Sakit')" class="px-2.5 py-1 text-xs font-medium rounded border transition ${status === 'Sakit' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200'}">S</button>
-                            <button onclick="setStatus('${student.id}', 'Alfa')" class="px-2.5 py-1 text-xs font-medium rounded border transition ${status === 'Alfa' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-rose-600 border-rose-200'}">A</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            tbody.innerHTML = members.map((m, index) => {
+                const status = attendanceState[m.id] || 'Hadir';
+                const btn = (label, value, active, base) =>
+                    `<button onclick="setStatus('${m.id}', '${value}')" class="px-2.5 py-1 text-xs font-medium rounded border transition ${active ? base.active : base.idle}">${label}</button>`;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 text-slate-500">${index + 1}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${m.name}</td>
+                        <td class="py-3 px-4 text-xs text-slate-600">${m.kelas || '-'}</td>
+                        <td class="py-3 px-4 text-xs text-slate-500 font-mono">${m.id}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center justify-center gap-1.5">
+                                ${btn('H', 'Hadir', status === 'Hadir', { active: 'bg-emerald-600 text-white border-emerald-600', idle: 'bg-white text-emerald-600 border-emerald-200' })}
+                                ${btn('I', 'Izin', status === 'Izin', { active: 'bg-amber-500 text-white border-amber-500', idle: 'bg-white text-amber-600 border-amber-200' })}
+                                ${btn('S', 'Sakit', status === 'Sakit', { active: 'bg-blue-500 text-white border-blue-500', idle: 'bg-white text-blue-600 border-blue-200' })}
+                                ${btn('A', 'Alfa', status === 'Alfa', { active: 'bg-rose-600 text-white border-rose-600', idle: 'bg-white text-rose-600 border-rose-200' })}
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join('');
         }
 
         function setStatus(studentId, status) {
@@ -248,100 +505,91 @@
         }
 
         function markAll(status) {
-            students.forEach(s => {
-                attendanceState[s.id] = status;
-            });
+            members.forEach(m => { attendanceState[m.id] = status; });
             renderTable();
             updateStats();
         }
 
         function updateStats() {
-            let hadir = 0, izin = 0, sakit = 0, alfa = 0;
-            Object.values(attendanceState).forEach(status => {
-                if (status === 'Hadir') hadir++;
-                else if (status === 'Izin') izin++;
-                else if (status === 'Sakit') sakit++;
-                else if (status === 'Alfa') alfa++;
-            });
-
-            document.getElementById('statHadir').innerText = hadir;
-            document.getElementById('statIzin').innerText = izin;
-            document.getElementById('statSakit').innerText = sakit;
-            document.getElementById('statAlfa').innerText = alfa;
+            let counts = { Hadir: 0, Izin: 0, Sakit: 0, Alfa: 0 };
+            members.forEach(m => { counts[attendanceState[m.id] || 'Hadir']++; });
+            document.getElementById('statHadir').innerText = counts.Hadir;
+            document.getElementById('statIzin').innerText = counts.Izin;
+            document.getElementById('statSakit').innerText = counts.Sakit;
+            document.getElementById('statAlfa').innerText = counts.Alfa;
         }
 
+        // -------------------------------------------------------------------
+        // Simpan / muat absensi
+        // -------------------------------------------------------------------
         async function saveAttendance() {
+            const ekId = currentEkskulId();
             const date = document.getElementById('attendanceDate').value;
             const note = document.getElementById('attendanceNote').value;
+            if (!ekId) { alert('Pilih ekskul dulu.'); return; }
 
-            const attendanceArray = Object.keys(attendanceState).map(id => ({
-                student_id: id,
-                status: attendanceState[id]
-            }));
+            const payload = {
+                ekskul_id: ekId,
+                date,
+                note,
+                attendance: members.map(m => ({ student_id: m.id, status: attendanceState[m.id] || 'Hadir' }))
+            };
 
             try {
-                const res = await fetch('/api/attendance', {
+                const res = await api('/api/attendance', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, note, attendance: attendanceArray })
+                    body: JSON.stringify(payload)
                 });
-
                 const result = await res.json();
                 if (result.success) {
-                    alert("Absensi berhasil disimpan ke database server!");
+                    alert('Absensi berhasil disimpan ke database server!');
                     await refreshHistory();
                 } else {
-                    alert("Gagal menyimpan: " + (result.error || "data tidak valid"));
+                    alert('Gagal menyimpan: ' + (result.message || result.error || 'data tidak valid'));
                 }
             } catch (err) {
                 console.error(err);
-                alert("Terjadi kesalahan koneksi.");
+                alert('Terjadi kesalahan koneksi.');
             }
         }
 
-        // Muat absensi yang sudah tersimpan untuk tanggal terpilih
         async function loadAttendanceForDate() {
+            const ekId = currentEkskulId();
             const date = document.getElementById('attendanceDate').value;
-            if (!date) return;
+            await loadMembers();
+            if (!ekId || !date) { updateStats(); return; }
 
             try {
-                const res = await fetch(`/api/attendance/${date}`);
-                const rows = await res.json();
+                const rows = await (await api(`/api/attendance/${ekId}/${date}`)).json();
 
-                if (rows.length > 0) {
-                    // Reset dulu ke Hadir, lalu timpa dengan data tersimpan
-                    students.forEach(s => { attendanceState[s.id] = 'Hadir'; });
-                    rows.forEach(r => {
-                        if (attendanceState.hasOwnProperty(r.student_id)) {
-                            attendanceState[r.student_id] = r.status;
-                        }
-                    });
-                    document.getElementById('attendanceNote').value = rows[0].note || '';
-                } else {
-                    // Belum ada data: kosongkan ke status default
-                    students.forEach(s => { attendanceState[s.id] = 'Hadir'; });
-                    document.getElementById('attendanceNote').value = '';
-                }
+                // Reset ke default Hadir, lalu timpa data tersimpan
+                members.forEach(m => { attendanceState[m.id] = 'Hadir'; });
+                rows.forEach(r => {
+                    if (attendanceState.hasOwnProperty(r.student_id)) {
+                        attendanceState[r.student_id] = r.status;
+                        if (r.note) document.getElementById('attendanceNote').value = r.note;
+                    }
+                });
+                if (rows.length === 0) document.getElementById('attendanceNote').value = '';
 
                 renderTable();
                 updateStats();
             } catch (err) {
-                console.error("Gagal memuat absensi:", err);
+                console.error('Gagal memuat absensi:', err);
             }
         }
 
-        // Tampilkan daftar tanggal yang sudah pernah diisi
         async function refreshHistory() {
+            const ekId = currentEkskulId();
             const el = document.getElementById('historyList');
-            try {
-                const res = await fetch('/api/attendance');
-                const rows = await res.json();
+            if (!ekId) { el.innerHTML = '<p class="text-xs text-slate-400">Pilih ekskul dulu.</p>'; return; }
 
+            try {
+                const rows = await (await api(`/api/attendance/${ekId}/history`)).json();
                 if (rows.length === 0) {
                     el.innerHTML = '<p class="text-xs text-slate-400">Belum ada data tersimpan.</p>';
                     return;
                 }
-
                 const current = document.getElementById('attendanceDate').value;
                 el.innerHTML = rows.map(r => `
                     <button onclick="jumpToDate('${r.date}')"
@@ -351,7 +599,7 @@
                     </button>
                 `).join('');
             } catch (err) {
-                console.error("Gagal memuat riwayat:", err);
+                console.error('Gagal memuat riwayat:', err);
                 el.innerHTML = '<p class="text-xs text-rose-500">Gagal memuat riwayat.</p>';
             }
         }
@@ -367,27 +615,236 @@
             return `${Number(d)} ${bulan[Number(m) - 1]} ${y}`;
         }
 
-        // Export data absensi tanggal terpilih ke CSV
         function exportCSV() {
             const date = document.getElementById('attendanceDate').value;
-            if (!students.length) {
-                alert("Data siswa belum dimuat.");
-                return;
-            }
+            const ek = ekskulList.find(e => e.id === currentEkskulId());
+            if (!members.length) { alert('Data anggota belum dimuat.'); return; }
 
-            let csv = 'No,ID,Nama Siswa,Status\n';
-            students.forEach((s, i) => {
-                csv += `${i + 1},${s.id},"${s.name}",${attendanceState[s.id]}\n`;
+            let csv = 'No,NIS,Nama,Kelas,Status\n';
+            members.forEach((m, i) => {
+                csv += `${i + 1},${m.id},"${m.name}","${m.kelas || ''}",${attendanceState[m.id] || 'Hadir'}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `absensi-xi-tkj-1-${date}.csv`;
+            a.download = `absensi-${(ek ? ek.name : 'ekskul').toLowerCase().replace(/\s+/g, '-')}-${date}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // -------------------------------------------------------------------
+        // Tab switching (admin)
+        // -------------------------------------------------------------------
+        function switchTab(name) {
+            ['absensi', 'ekskul', 'akun'].forEach(t => {
+                document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
+                const btn = document.getElementById(`tab-${t}`);
+                btn.classList.toggle('bg-white', t === name);
+                btn.classList.toggle('text-indigo-700', t === name);
+                btn.classList.toggle('bg-indigo-700/60', t !== name);
+                btn.classList.toggle('text-indigo-100', t !== name);
+            });
+            if (name === 'ekskul') refreshEkskulManage();
+            if (name === 'akun') refreshUserList();
+        }
+
+        // -------------------------------------------------------------------
+        // Kelola ekskul (admin)
+        // -------------------------------------------------------------------
+        async function refreshEkskulManage() {
+            const el = document.getElementById('ekskulManageList');
+            await loadEkskul();
+            if (!ekskulList.length) {
+                el.innerHTML = '<p class="text-xs text-slate-400">Belum ada ekskul.</p>';
+                return;
+            }
+            el.innerHTML = ekskulList.map(e => `
+                <div class="flex justify-between items-center px-3 py-2.5 rounded-lg border border-slate-200 bg-white">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">${e.name}</p>
+                        <p class="text-xs text-slate-400">${e.schedule_day || 'Belum jadwal'} ${e.schedule_time || ''} • ${e.member_count} anggota</p>
+                    </div>
+                    <button onclick="deleteEkskul(${e.id}, '${e.name}')"
+                        class="text-rose-500 hover:text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function showFormMsg(elId, msg, ok) {
+            const el = document.getElementById(elId);
+            el.innerText = msg;
+            el.className = `text-xs font-medium ${ok ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+
+        async function addEkskul() {
+            const name = document.getElementById('newEkskulName').value.trim();
+            if (!name) { showFormMsg('ekskulFormMsg', 'Nama ekskul wajib diisi', false); return; }
+            const res = await api('/api/ekskul', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name,
+                    schedule_day: document.getElementById('newEkskulDay').value,
+                    schedule_time: document.getElementById('newEkskulTime').value.trim()
+                })
+            });
+            const result = await res.json();
+            showFormMsg('ekskulFormMsg', result.message, !!result.success);
+            if (result.success) {
+                document.getElementById('newEkskulName').value = '';
+                document.getElementById('newEkskulTime').value = '';
+                await refreshEkskulManage();
+            }
+        }
+
+        async function deleteEkskul(id, name) {
+            if (!confirm(`Hapus ekskul "${name}" beserta seluruh data absensinya?`)) return;
+            const res = await api(`/api/ekskul/${id}`, { method: 'DELETE' });
+            const result = await res.json();
+            alert(result.message);
+            await refreshEkskulManage();
+            await loadAttendanceForDate();
+            await refreshHistory();
+        }
+
+        // -------------------------------------------------------------------
+        // Kelola anggota (admin)
+        // -------------------------------------------------------------------
+        async function loadManageMembers() {
+            const ekId = Number(document.getElementById('memberEkskulSelect').value) || null;
+            const tbody = document.getElementById('manageMembersBody');
+
+            if (ekId && students.length === 0) {
+                students = await (await api('/api/students')).json();
+            }
+
+            // Opsi siswa yang belum jadi anggota ekskul ini
+            if (ekId) {
+                const current = await (await api(`/api/ekskul/${ekId}/members`)).json();
+                const memberIds = new Set(current.map(m => m.id));
+                const available = students.filter(s => !memberIds.has(s.id));
+                document.getElementById('memberStudentSelect').innerHTML =
+                    available.map(s => `<option value="${s.id}">${s.name} — ${s.kelas} (${s.id})</option>`).join('')
+                    || '<option value="">Semua siswa sudah anggota</option>';
+
+                tbody.innerHTML = current.length ? current.map((m, i) => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2.5 px-4 text-slate-500">${i + 1}</td>
+                        <td class="py-2.5 px-4 font-medium text-slate-700">${m.name}</td>
+                        <td class="py-2.5 px-4 text-xs">${m.kelas || '-'}</td>
+                        <td class="py-2.5 px-4 text-xs font-mono">${m.id}</td>
+                        <td class="py-2.5 px-4 text-xs text-slate-400">${m.joined_at}</td>
+                        <td class="py-2.5 px-4 text-right">
+                            <button onclick="removeMember(${ekId}, '${m.id}', '${m.name}')"
+                                class="text-rose-500 hover:text-rose-700 text-xs font-medium">
+                                <i class="fa-solid fa-user-minus"></i> Keluarkan
+                            </button>
+                        </td>
+                    </tr>`).join('')
+                    : '<tr><td colspan="6" class="py-5 px-4 text-center text-xs text-slate-400">Belum ada anggota.</td></tr>';
+            } else {
+                document.getElementById('memberStudentSelect').innerHTML = '<option value="">Pilih ekskul dulu</option>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-5 px-4 text-center text-xs text-slate-400">Pilih ekskul dulu.</td></tr>';
+            }
+        }
+
+        async function addMember() {
+            const ekId = Number(document.getElementById('memberEkskulSelect').value);
+            const studentId = document.getElementById('memberStudentSelect').value;
+            if (!ekId || !studentId) { showFormMsg('memberFormMsg', 'Pilih ekskul dan siswa', false); return; }
+
+            const res = await api(`/api/ekskul/${ekId}/members`, {
+                method: 'POST',
+                body: JSON.stringify({ student_id: studentId })
+            });
+            const result = await res.json();
+            showFormMsg('memberFormMsg', result.message, !!result.success);
+            if (result.success) {
+                await loadEkskul();
+                await loadManageMembers();
+            }
+        }
+
+        async function removeMember(ekId, studentId, name) {
+            if (!confirm(`Keluarkan "${name}" dari ekskul ini?`)) return;
+            const res = await api(`/api/ekskul/${ekId}/members/${studentId}`, { method: 'DELETE' });
+            const result = await res.json();
+            showFormMsg('memberFormMsg', result.message, !!result.success);
+            if (result.success) {
+                await loadEkskul();
+                await loadManageMembers();
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Kelola akun (admin)
+        // -------------------------------------------------------------------
+        function toggleUserEkskul() {
+            const isPembina = document.getElementById('newUserRole').value === 'pembina';
+            document.getElementById('userEkskulField').classList.toggle('hidden', !isPembina);
+        }
+
+        async function addUser() {
+            const payload = {
+                name: document.getElementById('newUserName').value.trim(),
+                username: document.getElementById('newUserUsername').value.trim(),
+                password: document.getElementById('newUserPassword').value,
+                role: document.getElementById('newUserRole').value,
+                ekskul_id: document.getElementById('newUserEkskul').value
+            };
+            const res = await api('/api/users', { method: 'POST', body: JSON.stringify(payload) });
+            const result = await res.json();
+            showFormMsg('userFormMsg', result.message, !!result.success);
+            if (result.success) {
+                document.getElementById('newUserName').value = '';
+                document.getElementById('newUserUsername').value = '';
+                document.getElementById('newUserPassword').value = '';
+                await refreshUserList();
+            }
+        }
+
+        async function refreshUserList() {
+            const el = document.getElementById('userList');
+            try {
+                const rows = await (await api('/api/users')).json();
+                el.innerHTML = rows.map(u => `
+                    <div class="flex justify-between items-center px-3 py-2.5 rounded-lg border border-slate-200 bg-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full ${u.role === 'admin' ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-100 text-emerald-600'} flex items-center justify-center text-sm">
+                                <i class="fa-solid ${u.role === 'admin' ? 'fa-user-tie' : 'fa-chalkboard-user'}"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-700">${u.name}</p>
+                                <p class="text-xs text-slate-400">@${u.username} • ${u.role === 'admin' ? 'Admin' : `Pembina ${u.ekskul_name || ''}`}</p>
+                            </div>
+                        </div>
+                        ${u.id !== currentUser.id ? `
+                            <button onclick="deleteUser(${u.id}, '${u.username}')"
+                                class="text-rose-500 hover:text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>` : '<span class="text-xs text-slate-400 italic">akun ini</span>'}
+                    </div>
+                `).join('');
+            } catch (err) {
+                el.innerHTML = '<p class="text-xs text-rose-500">Gagal memuat daftar akun.</p>';
+            }
+        }
+
+        async function deleteUser(id, username) {
+            if (!confirm(`Hapus akun "${username}"?`)) return;
+            const res = await api(`/api/users/${id}`, { method: 'DELETE' });
+            const result = await res.json();
+            alert(result.message);
+            await refreshUserList();
+        }
+
+        // -------------------------------------------------------------------
+        // Boot
+        // -------------------------------------------------------------------
+        restoreSession();
     </script>
 </body>
 </html>
