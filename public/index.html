@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Absensi Ekskul - Login & App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -143,8 +144,8 @@
                 <button onclick="saveAttendance()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Server Database
                 </button>
-                <button onclick="exportCSV()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-csv text-emerald-600"></i> Export CSV
+                <button onclick="exportExcel()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-medium py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Excel
                 </button>
             </div>
 
@@ -615,21 +616,102 @@
             return `${Number(d)} ${bulan[Number(m) - 1]} ${y}`;
         }
 
-        function exportCSV() {
+        // Export ke Excel (.xlsx) dengan border, header & ringkasan
+        async function exportExcel() {
             const date = document.getElementById('attendanceDate').value;
+            const note = document.getElementById('attendanceNote').value;
             const ek = ekskulList.find(e => e.id === currentEkskulId());
             if (!members.length) { alert('Data anggota belum dimuat.'); return; }
 
-            let csv = 'No,NIS,Nama,Kelas,Status\n';
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet('Absensi');
+
+            const border = { style: 'thin', color: { argb: 'FF94A3B8' } };
+            const allBorders = { top: border, left: border, bottom: border, right: border };
+
+            // Judul
+            ws.mergeCells('A1:F1');
+            const titleCell = ws.getCell('A1');
+            titleCell.value = `ABSENSI EKSKUL ${ek ? ek.name.toUpperCase() : ''}`;
+            titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+            titleCell.border = allBorders;
+            ws.getRow(1).height = 26;
+
+            // Info tanggal + catatan
+            ws.mergeCells('A2:F2');
+            const infoCell = ws.getCell('A2');
+            infoCell.value = `Tanggal: ${formatTanggal(date)}${note ? `  |  Catatan: ${note}` : ''}`;
+            infoCell.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
+            infoCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            infoCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E7FF' } };
+            infoCell.border = allBorders;
+            ws.getRow(2).height = 20;
+
+            // Header tabel
+            const headers = ['No', 'NIS', 'Nama Anggota', 'Kelas', 'Status Kehadiran', 'Keterangan'];
+            const headerRow = ws.getRow(4);
+            headers.forEach((h, i) => {
+                const c = headerRow.getCell(i + 1);
+                c.value = h;
+                c.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+                c.alignment = { horizontal: 'center', vertical: 'middle' };
+                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
+                c.border = allBorders;
+            });
+            headerRow.height = 20;
+
+            // Warna per status
+            const statusColors = {
+                Hadir: 'FFDCFCE7', Izin: 'FFFEF3C7',
+                Sakit: 'FFDBEAFE', Alfa: 'FFFEE2E2'
+            };
+
+            // Baris data
             members.forEach((m, i) => {
-                csv += `${i + 1},${m.id},"${m.name}","${m.kelas || ''}",${attendanceState[m.id] || 'Hadir'}\n`;
+                const status = attendanceState[m.id] || 'Hadir';
+                const row = ws.getRow(5 + i);
+                const values = [i + 1, m.id, m.name, m.kelas || '', status, note || ''];
+                values.forEach((v, col) => {
+                    const c = row.getCell(col + 1);
+                    c.value = v;
+                    c.border = allBorders;
+                    c.alignment = { vertical: 'middle', horizontal: col === 2 || col === 5 ? 'left' : 'center' };
+                    if (col === 4) {
+                        c.font = { bold: true };
+                        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: statusColors[status] } };
+                    }
+                });
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // Baris ringkasan
+            const sumRow = ws.getRow(5 + members.length + 1);
+            let counts = { Hadir: 0, Izin: 0, Sakit: 0, Alfa: 0 };
+            members.forEach(m => counts[attendanceState[m.id] || 'Hadir']++);
+            ws.mergeCells(sumRow.number, 1, sumRow.number, 6);
+            const sumCell = sumRow.getCell(1);
+            sumCell.value = `Ringkasan:  Hadir ${counts.Hadir}  |  Izin ${counts.Izin}  |  Sakit ${counts.Sakit}  |  Alfa ${counts.Alfa}  |  Total ${members.length} anggota`;
+            sumCell.font = { bold: true, size: 10, color: { argb: 'FF312E81' } };
+            sumCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            sumCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+            sumCell.border = allBorders;
+            sumRow.height = 20;
+
+            // Lebar kolom
+            ws.columns = [
+                { width: 6 }, { width: 10 }, { width: 28 }, { width: 14 }, { width: 18 }, { width: 30 }
+            ];
+
+            // Unduh
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `absensi-${(ek ? ek.name : 'ekskul').toLowerCase().replace(/\s+/g, '-')}-${date}.csv`;
+            a.download = `absensi-${(ek ? ek.name : 'ekskul').toLowerCase().replace(/\s+/g, '-')}-${date}.xlsx`;
             a.click();
             URL.revokeObjectURL(url);
         }
