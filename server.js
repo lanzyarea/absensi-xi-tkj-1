@@ -147,7 +147,7 @@ async function initDb() {
             ['PMR', 'Kamis', '15:00'],
             ['Paskibra', 'Rabu', '14:30'],
             ['Seni Tari', 'Sabtu', '08:00'],
-            ['Volly', 'Kamis', '15:30']
+            ['Volly', 'Selasa', '15:30']
         ];
         const stmt = 'INSERT INTO ekskul (name, schedule_day, schedule_time) VALUES (?, ?, ?)';
         for (const e of ekskulList) await run(stmt, e);
@@ -340,7 +340,7 @@ app.get('/api/ekskul/:id/members', requireAuth, wrap(async (req, res) => {
         `SELECT s.id, s.name, s.kelas, m.joined_at
          FROM ekskul_members m JOIN students s ON s.id = m.student_id
          WHERE m.ekskul_id = ?
-         ORDER BY s.name`,
+         ORDER BY s.name COLLATE NOCASE`,
         [id]
     );
     res.json(rows);
@@ -348,9 +348,9 @@ app.get('/api/ekskul/:id/members', requireAuth, wrap(async (req, res) => {
 
 app.post('/api/ekskul/:id/members', requireAuth, requireAdmin, wrap(async (req, res) => {
     const ekskulId = Number(req.params.id);
-    let { student_id, name, kelas } = req.body;
-    if (!student_id) return res.status(400).json({ success: false, message: 'NIS siswa wajib diisi' });
-    student_id = String(student_id).trim();
+    const { student_id: rawStudentId, name, kelas } = req.body;
+    if (!rawStudentId) return res.status(400).json({ success: false, message: 'Siswa wajib dipilih' });
+    const student_id = String(rawStudentId).trim();
 
     let student = await get('SELECT * FROM students WHERE id = ?', [student_id]);
     if (!student) {
@@ -382,20 +382,22 @@ app.get('/api/students', requireAuth, requireAdmin, wrap(async (req, res) => {
     const rows = await all(
         `SELECT s.*,
             (SELECT COUNT(*) FROM ekskul_members m WHERE m.student_id = s.id) AS ekskul_count
-         FROM students s ORDER BY s.name`
+         FROM students s ORDER BY s.name COLLATE NOCASE`
     );
     res.json(rows);
 }));
 
+// Tambah siswa: NIS tidak wajib — ID internal auto-generated
 app.post('/api/students', requireAuth, requireAdmin, wrap(async (req, res) => {
-    const { id, name, kelas } = req.body;
-    if (!id || !name || !name.trim()) {
-        return res.status(400).json({ success: false, message: 'NIS dan nama wajib diisi' });
+    const { name, kelas } = req.body;
+    if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, message: 'Nama siswa wajib diisi' });
     }
-    const existing = await get('SELECT id FROM students WHERE id = ?', [String(id).trim()]);
-    if (existing) return res.status(409).json({ success: false, message: 'NIS sudah terdaftar' });
-    await run('INSERT INTO students (id, name, kelas) VALUES (?, ?, ?)', [String(id).trim(), name.trim(), (kelas || '').trim()]);
-    res.json({ success: true, message: 'Siswa berhasil ditambahkan' });
+    // ID = max ID numerik saat ini + 1 (fallback ke timestamp)
+    const row = await get('SELECT MAX(CAST(id AS INTEGER)) AS maxId FROM students');
+    const newId = row && row.maxId ? String(row.maxId + 1) : String(Date.now());
+    await run('INSERT INTO students (id, name, kelas) VALUES (?, ?, ?)', [newId, name.trim(), (kelas || '').trim()]);
+    res.json({ success: true, id: newId, message: 'Siswa berhasil ditambahkan' });
 }));
 
 // ---------------------------------------------------------------------------
@@ -429,7 +431,7 @@ app.get('/api/attendance/:ekskulId/:date', requireAuth, wrap(async (req, res) =>
         `SELECT a.student_id, a.status, a.note, s.name
          FROM attendance a JOIN students s ON s.id = a.student_id
          WHERE a.ekskul_id = ? AND a.date = ?
-         ORDER BY s.name`,
+         ORDER BY s.name COLLATE NOCASE`,
         [ekskulId, date]
     );
     res.json(rows);

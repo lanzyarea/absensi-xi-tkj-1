@@ -162,8 +162,7 @@
                                 <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
                                     <th class="py-3 px-4 font-semibold w-16">No</th>
                                     <th class="py-3 px-4 font-semibold">Nama Anggota</th>
-                                    <th class="py-3 px-4 font-semibold w-24">Kelas</th>
-                                    <th class="py-3 px-4 font-semibold w-32">NIS</th>
+                                    <th class="py-3 px-4 font-semibold w-32">Kelas</th>
                                     <th class="py-3 px-4 font-semibold text-center w-72">Status</th>
                                 </tr>
                             </thead>
@@ -227,7 +226,7 @@
                         <select id="memberEkskulSelect" onchange="loadManageMembers()" class="px-3 py-2 border rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">NIS</label>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Nama Siswa</label>
                         <select id="memberStudentSelect" class="px-3 py-2 border rounded-lg bg-slate-50 min-w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
                     </div>
                     <button onclick="addMember()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition">
@@ -235,6 +234,25 @@
                     </button>
                     <div id="memberFormMsg" class="text-xs font-medium"></div>
                 </div>
+                <details class="border border-slate-200 rounded-lg p-3 text-sm bg-slate-50">
+                    <summary class="cursor-pointer font-medium text-slate-600 select-none">
+                        <i class="fa-solid fa-user-plus text-indigo-600 mr-1.5"></i> Tambah Siswa Baru (nama + kelas saja)
+                    </summary>
+                    <div class="flex flex-wrap gap-3 items-end mt-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Nama Lengkap</label>
+                            <input id="newStudentName" placeholder="Contoh: Budi Santoso" class="px-3 py-2 border rounded-lg bg-white min-w-52 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Kelas</label>
+                            <input id="newStudentKelas" placeholder="Contoh: XI TKJ 1" class="px-3 py-2 border rounded-lg bg-white w-36 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <button onclick="addStudent()" class="bg-white hover:bg-slate-100 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-300 text-sm transition">
+                            Simpan Siswa
+                        </button>
+                        <div id="studentFormMsg" class="text-xs font-medium"></div>
+                    </div>
+                </details>
                 <div class="overflow-x-auto border rounded-lg">
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
@@ -242,7 +260,6 @@
                                 <th class="py-2.5 px-4 font-semibold w-16">No</th>
                                 <th class="py-2.5 px-4 font-semibold">Nama</th>
                                 <th class="py-2.5 px-4 font-semibold w-32">Kelas</th>
-                                <th class="py-2.5 px-4 font-semibold w-32">NIS</th>
                                 <th class="py-2.5 px-4 font-semibold w-24">Bergabung</th>
                                 <th class="py-2.5 px-4 font-semibold w-24"></th>
                             </tr>
@@ -473,7 +490,7 @@
         function renderTable() {
             const tbody = document.getElementById('studentTableBody');
             if (!members.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-6 px-4 text-center text-xs text-slate-400">Belum ada anggota di ekskul ini.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="py-6 px-4 text-center text-xs text-slate-400">Belum ada anggota di ekskul ini.</td></tr>';
                 return;
             }
 
@@ -486,7 +503,6 @@
                         <td class="py-3 px-4 text-slate-500">${index + 1}</td>
                         <td class="py-3 px-4 font-semibold text-slate-800">${m.name}</td>
                         <td class="py-3 px-4 text-xs text-slate-600">${m.kelas || '-'}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500 font-mono">${m.id}</td>
                         <td class="py-3 px-4">
                             <div class="flex items-center justify-center gap-1.5">
                                 ${btn('H', 'Hadir', status === 'Hadir', { active: 'bg-emerald-600 text-white border-emerald-600', idle: 'bg-white text-emerald-600 border-emerald-200' })}
@@ -630,7 +646,7 @@
             const allBorders = { top: border, left: border, bottom: border, right: border };
 
             // Judul
-            ws.mergeCells('A1:F1');
+            ws.mergeCells('A1:E1');
             const titleCell = ws.getCell('A1');
             titleCell.value = `ABSENSI EKSKUL ${ek ? ek.name.toUpperCase() : ''}`;
             titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
@@ -640,7 +656,7 @@
             ws.getRow(1).height = 26;
 
             // Info tanggal + catatan
-            ws.mergeCells('A2:F2');
+            ws.mergeCells('A2:E2');
             const infoCell = ws.getCell('A2');
             infoCell.value = `Tanggal: ${formatTanggal(date)}${note ? `  |  Catatan: ${note}` : ''}`;
             infoCell.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
@@ -650,7 +666,7 @@
             ws.getRow(2).height = 20;
 
             // Header tabel
-            const headers = ['No', 'NIS', 'Nama Anggota', 'Kelas', 'Status Kehadiran', 'Keterangan'];
+            const headers = ['No', 'Nama Anggota', 'Kelas', 'Status Kehadiran', 'Keterangan'];
             const headerRow = ws.getRow(4);
             headers.forEach((h, i) => {
                 const c = headerRow.getCell(i + 1);
@@ -672,13 +688,13 @@
             members.forEach((m, i) => {
                 const status = attendanceState[m.id] || 'Hadir';
                 const row = ws.getRow(5 + i);
-                const values = [i + 1, m.id, m.name, m.kelas || '', status, note || ''];
+                const values = [i + 1, m.name, m.kelas || '', status, note || ''];
                 values.forEach((v, col) => {
                     const c = row.getCell(col + 1);
                     c.value = v;
                     c.border = allBorders;
-                    c.alignment = { vertical: 'middle', horizontal: col === 2 || col === 5 ? 'left' : 'center' };
-                    if (col === 4) {
+                    c.alignment = { vertical: 'middle', horizontal: col === 1 || col === 4 ? 'left' : 'center' };
+                    if (col === 3) {
                         c.font = { bold: true };
                         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: statusColors[status] } };
                     }
@@ -689,7 +705,7 @@
             const sumRow = ws.getRow(5 + members.length + 1);
             let counts = { Hadir: 0, Izin: 0, Sakit: 0, Alfa: 0 };
             members.forEach(m => counts[attendanceState[m.id] || 'Hadir']++);
-            ws.mergeCells(sumRow.number, 1, sumRow.number, 6);
+            ws.mergeCells(sumRow.number, 1, sumRow.number, 5);
             const sumCell = sumRow.getCell(1);
             sumCell.value = `Ringkasan:  Hadir ${counts.Hadir}  |  Izin ${counts.Izin}  |  Sakit ${counts.Sakit}  |  Alfa ${counts.Alfa}  |  Total ${members.length} anggota`;
             sumCell.font = { bold: true, size: 10, color: { argb: 'FF312E81' } };
@@ -700,7 +716,7 @@
 
             // Lebar kolom
             ws.columns = [
-                { width: 6 }, { width: 10 }, { width: 28 }, { width: 14 }, { width: 18 }, { width: 30 }
+                { width: 6 }, { width: 28 }, { width: 14 }, { width: 18 }, { width: 30 }
             ];
 
             // Unduh
@@ -809,7 +825,7 @@
                 const memberIds = new Set(current.map(m => m.id));
                 const available = students.filter(s => !memberIds.has(s.id));
                 document.getElementById('memberStudentSelect').innerHTML =
-                    available.map(s => `<option value="${s.id}">${s.name} — ${s.kelas} (${s.id})</option>`).join('')
+                    available.map(s => `<option value="${s.id}">${s.name} — ${s.kelas || 'Tanpa kelas'}</option>`).join('')
                     || '<option value="">Semua siswa sudah anggota</option>';
 
                 tbody.innerHTML = current.length ? current.map((m, i) => `
@@ -817,7 +833,6 @@
                         <td class="py-2.5 px-4 text-slate-500">${i + 1}</td>
                         <td class="py-2.5 px-4 font-medium text-slate-700">${m.name}</td>
                         <td class="py-2.5 px-4 text-xs">${m.kelas || '-'}</td>
-                        <td class="py-2.5 px-4 text-xs font-mono">${m.id}</td>
                         <td class="py-2.5 px-4 text-xs text-slate-400">${m.joined_at}</td>
                         <td class="py-2.5 px-4 text-right">
                             <button onclick="removeMember(${ekId}, '${m.id}', '${m.name}')"
@@ -826,10 +841,29 @@
                             </button>
                         </td>
                     </tr>`).join('')
-                    : '<tr><td colspan="6" class="py-5 px-4 text-center text-xs text-slate-400">Belum ada anggota.</td></tr>';
+                    : '<tr><td colspan="5" class="py-5 px-4 text-center text-xs text-slate-400">Belum ada anggota.</td></tr>';
             } else {
                 document.getElementById('memberStudentSelect').innerHTML = '<option value="">Pilih ekskul dulu</option>';
-                tbody.innerHTML = '<tr><td colspan="6" class="py-5 px-4 text-center text-xs text-slate-400">Pilih ekskul dulu.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-5 px-4 text-center text-xs text-slate-400">Pilih ekskul dulu.</td></tr>';
+            }
+        }
+
+        async function addStudent() {
+            const name = document.getElementById('newStudentName').value.trim();
+            const kelas = document.getElementById('newStudentKelas').value.trim();
+            if (!name) { showFormMsg('studentFormMsg', 'Nama wajib diisi', false); return; }
+
+            const res = await api('/api/students', {
+                method: 'POST',
+                body: JSON.stringify({ name, kelas })
+            });
+            const result = await res.json();
+            showFormMsg('studentFormMsg', result.message, !!result.success);
+            if (result.success) {
+                document.getElementById('newStudentName').value = '';
+                document.getElementById('newStudentKelas').value = '';
+                students = await (await api('/api/students')).json();
+                await loadManageMembers();
             }
         }
 
